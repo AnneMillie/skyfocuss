@@ -11,7 +11,7 @@ interface MapContainerProps {
   onAirportClick: (ap: Airport) => void;
 }
 
-const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying }) => {
+const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying, airports, onAirportClick }) => {
   const mapRef = useRef<L.Map | null>(null);
   const pathRef = useRef<L.Polyline | null>(null);
   const planeRef = useRef<L.Marker | null>(null);
@@ -49,7 +49,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying }) => {
     if (pathRef.current) mapRef.current.removeLayer(pathRef.current);
     if (planeRef.current) mapRef.current.removeLayer(planeRef.current);
 
-    // Create the curved path
+    // Create CURVED paths using interpolatePath (Great Circle approximation)
     const points = interpolatePath([from.lat, from.lon], [to.lat, to.lon], 2000);
     
     pathRef.current = L.polyline(points as any, { 
@@ -64,11 +64,11 @@ const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying }) => {
 
     if (isFlying) {
       let startTime = performance.now();
-      const duration = 180000; // 3 min total visual duration
+      const duration = 180000; // 3 minute flight animation duration
 
       const planeIcon = L.divIcon({
         html: `<div class="plane-wrapper">
-                <div class="plane-rotation-layer" id="plane-rotator" style="width:64px; height:64px;">
+                <div class="plane-rotation-layer" id="plane-rotator">
                   <i class="fa-solid fa-plane text-yellow-400 text-3xl drop-shadow-[0_0_15px_rgba(251,191,36,0.9)]" style="transform: rotate(-45deg);"></i>
                 </div>
               </div>`,
@@ -88,7 +88,6 @@ const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying }) => {
         const nextIndex = Math.min(index + 5, points.length - 1); 
         const nextPos = points[nextIndex];
         
-        // Calculate bearing for incline/alignment
         const bearing = getBearing(currentPos[0], currentPos[1], nextPos[0], nextPos[1]);
         
         if (planeRef.current) {
@@ -99,7 +98,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying }) => {
           }
         }
 
-        if (mapRef.current && index % 20 === 0) {
+        if (mapRef.current && index % 15 === 0) {
           mapRef.current.panTo(currentPos as any, { animate: true, duration: 0.3 });
         }
 

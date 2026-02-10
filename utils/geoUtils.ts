@@ -5,6 +5,7 @@ import { Airport } from '../types';
  * Calculates Great Circle distance between two points in KM
  */
 export function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  if (lat1 === lat2 && lon1 === lon2) return 0;
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -30,6 +31,8 @@ export function getBearing(lat1: number, lng1: number, lat2: number, lng2: numbe
  * Generates points along a Great Circle path for the curve
  */
 export function interpolatePath(start: [number, number], end: [number, number], segments: number = 100): [number, number][] {
+  if (start[0] === end[0] && start[1] === end[1]) return [start, end];
+  
   const points: [number, number][] = [];
   const startLat = start[0] * Math.PI / 180;
   const startLon = start[1] * Math.PI / 180;
@@ -38,6 +41,9 @@ export function interpolatePath(start: [number, number], end: [number, number], 
 
   const d = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin((startLat - endLat) / 2), 2) +
             Math.cos(startLat) * Math.cos(endLat) * Math.pow(Math.sin((startLon - endLon) / 2), 2)));
+
+  // If distance is zero, interpolation fails
+  if (d === 0) return [start, end];
 
   for (let i = 0; i <= segments; i++) {
     const f = i / segments;

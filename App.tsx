@@ -43,19 +43,7 @@ const App: React.FC = () => {
       });
   }, []);
 
-  const startFlight = useCallback((pref: SnackPreference) => {
-    const flightTime = context.estimatedFlightTime;
-    // Session logic: If flight is shorter than 30 mins, focus session = flight time
-    const initialFocusTime = Math.min(1800, flightTime);
-    
-    setContext(prev => ({ ...prev, snackPreference: pref }));
-    setMode('FLYING');
-    setPomodoro('WORK');
-    setPomodoroSeconds(initialFocusTime);
-    setRemainingFlightSeconds(flightTime);
-  }, [context.estimatedFlightTime]);
-
-  const terminateFlight = () => {
+  const terminateFlight = useCallback(() => {
     setMode('IDLE');
     setContext({
       from: null,
@@ -67,38 +55,54 @@ const App: React.FC = () => {
     setPomodoroSeconds(1800);
     setRemainingFlightSeconds(0);
     if (timerRef.current) clearInterval(timerRef.current);
-  };
+  }, []);
 
+  const startFlight = useCallback((pref: SnackPreference) => {
+    const flightTime = context.estimatedFlightTime;
+    const initialFocusTime = Math.min(1800, flightTime);
+    
+    setContext(prev => ({ ...prev, snackPreference: pref }));
+    setMode('FLYING');
+    setPomodoro('WORK');
+    setPomodoroSeconds(initialFocusTime);
+    setRemainingFlightSeconds(flightTime);
+  }, [context.estimatedFlightTime]);
+
+  // Handle countdown logic
   useEffect(() => {
     if (mode === 'FLYING') {
       timerRef.current = window.setInterval(() => {
         setPomodoroSeconds(prev => {
+          if (prev <= 1 && prev !== -1) return -1; 
+          return prev - 1;
+        });
+        setRemainingFlightSeconds(prev => {
           if (prev <= 1) {
-            if (pomodoro === 'WORK') {
-              // Switch to break: 5 mins or remaining flight time
-              return -1; 
-            } else {
-              // Switch back to work: 30 mins or remaining flight time
-              return -1;
-            }
+            // Once the count is over, go back to homepage
+            return 0;
           }
           return prev - 1;
         });
-        setRemainingFlightSeconds(prev => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [mode, pomodoro]);
 
+  // Auto-terminate when flight ends
+  useEffect(() => {
+    if (mode === 'FLYING' && remainingFlightSeconds === 0) {
+      terminateFlight();
+    }
+  }, [remainingFlightSeconds, mode, terminateFlight]);
+
+  // Pomodoro switching logic
   useEffect(() => {
     if (pomodoroSeconds === -1) {
       if (pomodoro === 'BREAK') {
-        // Switching to WORK
         const nextWork = Math.min(1800, remainingFlightSeconds);
         setPomodoro('WORK');
         setPomodoroSeconds(nextWork > 0 ? nextWork : 0);
       } else {
-        // Switching to BREAK
         const nextBreak = Math.min(300, remainingFlightSeconds);
         if (context.snackPreference === 'SNACKS') {
           setShowNotification(true);

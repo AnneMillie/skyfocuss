@@ -15,15 +15,7 @@
     #map { height: 100vh; width: 100vw; z-index: 1; }
     .leaflet-container { background: #010203 !important; }
     
-    .glass-yellow {
-      background: rgba(251, 191, 36, 0.08);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(251, 191, 36, 0.35);
-      box-shadow: 0 0 40px rgba(251, 191, 36, 0.12), inset 0 0 20px rgba(251, 191, 36, 0.05);
-    }
-
-    /* Airplane Silhouette for Seat Selection */
+    /* 3D Silhouette Perspective */
     .airplane-scroll-container { 
         perspective: 1200px; 
         height: 60vh; 
@@ -35,9 +27,10 @@
     }
     .airplane-silhouette { 
         width: 450px; 
-        background: rgba(251, 191, 36, 0.03); 
-        backdrop-filter: blur(30px);
-        border: 2px solid rgba(251, 191, 36, 0.25); 
+        background: rgba(251, 191, 36, 0.05); 
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 2px solid rgba(251, 191, 36, 0.3); 
         border-radius: 200px 200px 50px 50px; 
         height: fit-content; 
         transform: rotateX(15deg); 
@@ -45,8 +38,16 @@
         padding: 0 40px; 
         box-sizing: border-box;
     }
-    .plane-nose { margin: 0 -40px; height: 180px; background: rgba(251, 191, 36, 0.05); border-radius: 200px 200px 0 0; border-bottom: 2px solid rgba(251, 191, 36, 0.2); }
-    .plane-tail { margin: 0 -40px; height: 120px; background: rgba(251, 191, 36, 0.05); border-radius: 0 0 50px 50px; border-top: 2px solid rgba(251, 191, 36, 0.2); }
+    .plane-nose { margin: 0 -40px; height: 180px; background: rgba(251, 191, 36, 0.08); border-radius: 200px 200px 0 0; border-bottom: 2px solid rgba(251, 191, 36, 0.2); }
+    .plane-tail { margin: 0 -40px; height: 120px; background: rgba(251, 191, 36, 0.08); border-radius: 0 0 50px 50px; border-top: 2px solid rgba(251, 191, 36, 0.2); }
+
+    .glass-yellow {
+      background: rgba(251, 191, 36, 0.1);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.15), inset 0 0 20px rgba(251, 191, 36, 0.05);
+    }
 
     @keyframes slideDown {
       0% { transform: translate(-50%, -100%); opacity: 0; }
@@ -58,6 +59,15 @@
     .plane-rotation-layer { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; }
 
     ::-webkit-scrollbar { width: 0px; }
+    
+    .airport-marker {
+      transition: all 0.2s ease;
+      filter: drop-shadow(0 0 5px rgba(96, 165, 250, 0.6));
+    }
+    .airport-marker:hover {
+      filter: drop-shadow(0 0 12px rgba(251, 191, 36, 1));
+      transform: scale(1.5);
+    }
   </style>
   <script type="importmap">
   {
@@ -74,7 +84,5 @@
 </head>
 <body>
   <div id="root"></div>
-  <!-- Explicitly including the index module to ensure it runs in standard environments -->
-  <script type="module" src="index.tsx"></script>
 </body>
 </html>
