@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Airport } from '../types';
@@ -69,15 +70,18 @@ const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying, airport
       const planeIcon = L.divIcon({
         html: `<div class="plane-wrapper">
                 <div class="plane-rotation-layer" id="plane-rotator">
-                  <i class="fa-solid fa-plane text-yellow-400 text-3xl drop-shadow-[0_0_15px_rgba(251,191,36,0.9)]" style="transform: rotate(-45deg);"></i>
+                  <i class="fa-solid fa-plane text-yellow-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.9)]" style="font-size: 28px;"></i>
                 </div>
               </div>`,
-        className: '',
+        className: 'custom-plane-container',
         iconSize: [64, 64],
         iconAnchor: [32, 32] 
       });
 
-      planeRef.current = L.marker(points[0] as any, { icon: planeIcon, zIndexOffset: 2000 }).addTo(mapRef.current);
+      planeRef.current = L.marker(points[0] as any, { 
+        icon: planeIcon, 
+        zIndexOffset: 2000 
+      }).addTo(mapRef.current);
 
       const animate = (time: number) => {
         const elapsed = time - startTime;
@@ -85,21 +89,25 @@ const MapContainer: React.FC<MapContainerProps> = ({ from, to, isFlying, airport
         
         const index = Math.floor(progress * (points.length - 1));
         const currentPos = points[index];
-        const nextIndex = Math.min(index + 5, points.length - 1); 
+        // Look ahead for bearing calculation to ensure smooth rotation
+        const nextIndex = Math.min(index + 2, points.length - 1); 
         const nextPos = points[nextIndex];
         
-        const bearing = getBearing(currentPos[0], currentPos[1], nextPos[0], nextPos[1]);
+        const rawBearing = getBearing(currentPos[0], currentPos[1], nextPos[0], nextPos[1]);
+        // The fa-plane icon points top-right (45deg). 
+        // We subtract 45 so the nose points to the tangent.
+        const adjustedRotation = rawBearing - 45;
         
         if (planeRef.current) {
           planeRef.current.setLatLng(currentPos as any);
           const rotator = planeRef.current.getElement()?.querySelector('#plane-rotator') as HTMLElement;
           if (rotator) {
-            rotator.style.transform = `rotate(${bearing}deg)`;
+            rotator.style.transform = `rotate(${adjustedRotation}deg)`;
           }
         }
 
-        if (mapRef.current && index % 15 === 0) {
-          mapRef.current.panTo(currentPos as any, { animate: true, duration: 0.3 });
+        if (mapRef.current && index % 20 === 0) {
+          mapRef.current.panTo(currentPos as any, { animate: true, duration: 0.4 });
         }
 
         if (progress < 1) {
